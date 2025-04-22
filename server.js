@@ -2,6 +2,9 @@ require("dotenv").config();
 
 const express = require('express');
 const cors = require('cors');
+const http = require('http')
+const {initWebSocket} = require('./src/services/websocket')
+
 const authRoutes = require('./src/routes/authRoutes');
 const fundRoutes = require('./src/routes/fundRoutes');
 const networkRoutes = require('./src/routes/networkRoutes');
@@ -32,9 +35,13 @@ app.use('/home', foundHomeRoutes);
 app.use('/exam', examinationRoutes);
 app.use('/vaccination', vaccinationRoutes);
 
+const server = http.createServer(app)
 
-const port = 3000;
+initWebSocket(server)
 
-app.listen(port, ()=> {
+const port = process.env.PORT_SERVER;
+
+server.listen(port, ()=> {
     console.log(`Сервер работает на порте ${port}`);
 })
+

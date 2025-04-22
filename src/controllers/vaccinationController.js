@@ -58,6 +58,20 @@ const addVaccination = async (req, res) => {
     const {pets_id, shelter_id, vaccine_id, quantity, date } = req.body;
 
     try {
+        const expiration = await pool.query ('' +
+            'SELECT sv.date ' +
+            'FROM "ShelterVaccine" sv ' +
+            'WHERE vaccine_id = $1 ' +
+            'AND shelter_id = $2',
+                [vaccine_id, shelter_id]);
+
+        const expirationDate = new Date(expiration.rows[0].date);
+        const today = new Date();
+
+        if (expirationDate < today) {
+            return res.status(400).json({ message: 'Срок годности вакцины истёк!' });
+        }
+
         const vaccinationUpdate = await pool.query(
             'UPDATE "ShelterVaccine" ' +
             'SET quantity = quantity - $1 ' +
@@ -91,12 +105,14 @@ const updateVaccination = async (req, res) => {
     const {pets_id, shelter_id, vaccine_id, quantity, date} = req.body;
 
     try {
+        await pool.query('BEGIN');
         const oldData = await pool.query(
             'SELECT vaccine_id, quantity FROM "VaccinationPet" WHERE id_vaccination = $1',
             [id]
         );
 
         if (oldData.rowCount === 0) {
+            await pool.query('ROLLBACK');
             return res.status(404).json({message: 'Запись не найдена!'});
         }
 
@@ -111,12 +127,21 @@ const updateVaccination = async (req, res) => {
 
             // Проверка, достаточно ли новой вакцины
             const checkNewVaccine = await pool.query(
-                'SELECT quantity FROM "ShelterVaccine" WHERE vaccine_id = $1 AND shelter_id = $2',
+                'SELECT sv.quantity, sv.date FROM "ShelterVaccine" sv WHERE vaccine_id = $1 AND shelter_id = $2',
                 [vaccine_id, shelter_id]
             );
 
             if (checkNewVaccine.rowCount === 0 || checkNewVaccine.rows[0].quantity < quantity) {
+                await pool.query('ROLLBACK');
                 return res.status(401).json({message: 'Недостаточно вакцин в приюте!'});
+            }
+
+            const expirationDate = new Date(checkNewVaccine.rows[0].date);
+            const today = new Date();
+
+            if (expirationDate < today) {
+                await pool.query('ROLLBACK');
+                return res.status(400).json({ message: 'Срок годности вакцины истёк!' });
             }
 
             // Вычитание нового количества
@@ -130,10 +155,11 @@ const updateVaccination = async (req, res) => {
             'UPDATE "VaccinationPet" SET pets_id = $1, vaccine_id = $2, quantity = $3, date = $4 WHERE id_vaccination = $5 RETURNING *',
             [pets_id, vaccine_id, quantity, date, id]
         );
-
+        await pool.query('COMMIT');
         broadcast({event: 'vaccination-update', data: result.rows[0]});
         return res.status(201).json({message: 'Обновление выполнено!', vaccination: result.rows[0]});
     } catch (err) {
+        await pool.query('ROLLBACK');
         console.error(err);
         return res.status(500).json({message: 'Ошибка обновления!'});
     }

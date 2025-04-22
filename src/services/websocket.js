@@ -1,20 +1,24 @@
 const WebSocket = require("ws");
 
-const wss = new WebSocket.Server({port:8080});
+let wss;
 
-wss.on('connection', (ws) => {
-    console.log('Установлено новое соединение!');
+function initWebSocket(server) {
+    wss = new WebSocket.Server({server})
 
-    ws.on('message', (message) => {
-        console.log(`Получено новое сообщение!', ${message}`);
+    wss.on('connection', (ws) => {
+        console.log('Установлено новое соединение!');
+
+        ws.on('message', (message) => {
+            console.log(`Получено новое сообщение!', ${message}`);
+        })
+
+        ws.on('close', () => {
+            console.log('Соединение закрыто!');
+        })
     })
+}
 
-    ws.on('close', () => {
-        console.log('Соединение закрыто!');
-    })
-})
-
-const broadcast = (data) => {
+function broadcast(data){
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(data));
@@ -22,4 +26,4 @@ const broadcast = (data) => {
     })
 }
 
-module.exports = {broadcast};
+module.exports = {initWebSocket, broadcast};
