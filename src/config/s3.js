@@ -69,4 +69,4 @@ const deleteFromS3 = async (fileUrl) => {
     }
 }
 
-module.exports = { uploadToS3, deleteFromS3 };
+module.exports = { uploadToS3, deleteFromS3, upload };

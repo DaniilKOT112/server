@@ -1,12 +1,6 @@
 const { pool } = require('../config/db')
-const { uploadToS3, deleteFromS3 } = require('../config/s3')
+const { uploadToS3, deleteFromS3, upload } = require('../config/s3')
 const { broadcast } = require('../services/websocket')
-const multer = require("multer")
-
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 }
-});
 
 const getShelters = async (req, res) => {
     const result = await pool.query('SELECT * FROM "Shelter"');
@@ -107,7 +101,7 @@ const updateFoundHome = async (req, res) => {
         );
 
         if (foundExists.rows.length === 0) {
-            return res.status(403).json({message: 'Такой пост не найдена!'})
+            return res.status(403).json({message: 'Такой пост не найден!'})
         }
 
         if (heading) {

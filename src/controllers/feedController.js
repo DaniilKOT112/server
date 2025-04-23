@@ -1,13 +1,6 @@
 const { pool } = require('../config/db');
-const { uploadToS3, deleteFromS3 } = require('../config/s3');
+const { uploadToS3, deleteFromS3, upload } = require('../config/s3');
 const { broadcast } = require('../services/websocket');
-const multer = require("multer");
-const {query} = require("express");
-
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 }
-});
 
 const getShelters = async (req, res) => {
     const result = await pool.query('SELECT * FROM "Shelter"');
@@ -16,7 +9,6 @@ const getShelters = async (req, res) => {
 
 const getFeed = async (req, res) => {
     const { text, shelter } = req.query;
-
     try {
         let baseQuery = `
             SELECT f.id_feed, f.heading, f.text, f.author, s.id_shelter, s.name_shelter as shelter,

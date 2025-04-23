@@ -1,12 +1,6 @@
 const { pool } = require('../config/db');
-const { uploadToS3, deleteFromS3 } = require('../config/s3');
+const { uploadToS3, deleteFromS3, upload } = require('../config/s3');
 const { broadcast } = require('../services/websocket');
-const multer = require("multer");
-
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 }
-});
 
 const getNetworks = async (req, res) => {
     const { text, creator } = req.query;
