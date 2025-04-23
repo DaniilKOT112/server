@@ -42,14 +42,14 @@ const uploadToS3 = async (file) => {
 const deleteFromS3 = async (fileUrl) => {
     if (!fileUrl || !fileUrl.includes('storage.yandexcloud.net')) {
         return
-    };
+    }
 
     const url = new URL(fileUrl);
     const pathParts = url.pathname.split('/').filter(part => part !== '');
 
     if (pathParts.length < 2) {
         throw new Error('Неверный url');
-    };
+    }
 
     const bucketName = pathParts[0];
     const key = pathParts.slice(1).join('/');
