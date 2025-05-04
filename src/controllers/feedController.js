@@ -50,7 +50,7 @@ const addFeed = async (req, res) => {
 
     try {
         const feedExists = await pool.query(
-            'SELECT * FROM "Feed" WHERE heading = $1', [heading]
+            'SELECT * FROM "Feed" WHERE heading = $1 AND shelter_id = $2', [heading, shelter_id]
         );
 
         if (feedExists.rows.length > 0) {
@@ -98,8 +98,8 @@ const updateFeed = async (req, res) => {
 
         if (heading) {
             const feedExistsName = await pool.query(
-                'SELECT * FROM "Feed" WHERE heading = $1 AND id_feed != $2',
-                [heading, id]
+                'SELECT * FROM "Feed" WHERE heading = $1 AND shelter_id = $2 AND id_feed != $3',
+                [heading, shelter_id, id]
             );
 
             if (feedExistsName.rows.length > 0) {

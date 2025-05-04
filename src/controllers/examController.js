@@ -45,7 +45,7 @@ const addExamination = async (req, res) => {
 
     try {
         const examExists = await pool.query(
-            'SELECT * FROM "Examination" WHERE name = $1', [name]
+            'SELECT * FROM "Examination" WHERE name = $1 AND shelter_id = $2', [name, shelter_id]
         );
 
         if (examExists.rows.length > 0) {
@@ -80,8 +80,8 @@ const updateExamination = async (req, res) => {
 
         if (name) {
             const examExistsName = await pool.query(
-                'SELECT * FROM "Examination" WHERE name = $1 AND id_examination != $2',
-                [name, id]
+                'SELECT * FROM "Examination" WHERE name = $1 AND shelter_id = $2 AND id_examination != $3',
+                [name, shelter_id, id]
             );
 
             if (examExistsName.rows.length > 0) {

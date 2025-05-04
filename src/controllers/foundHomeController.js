@@ -57,7 +57,7 @@ const addFoundHome = async (req, res) => {
 
     try {
         const foundExists = await pool.query(
-            'SELECT * FROM "FoundHome" WHERE heading = $1', [heading]
+            'SELECT * FROM "FoundHome" WHERE heading = $1 AND shelter_id = $2', [heading, shelter_id]
         );
 
         if (foundExists.rows.length > 0) {
@@ -106,8 +106,8 @@ const updateFoundHome = async (req, res) => {
 
         if (heading) {
             const foundExistsName = await pool.query(
-                'SELECT * FROM "FoundHome" WHERE heading = $1 AND id_found_home != $2',
-                [heading, id]
+                'SELECT * FROM "FoundHome" WHERE heading = $1 AND shelter_id = $2 AND id_found_home != $3',
+                [heading, shelter_id, id]
             );
 
             if (foundExistsName.rows.length > 0) {

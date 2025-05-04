@@ -48,7 +48,7 @@ const addFund = async (req, res) => {
 
     try {
         const fundExists = await pool.query(
-            'SELECT * FROM "Fund" WHERE name_fund = $1', [name_fund]
+            'SELECT * FROM "Fund" WHERE name_fund = $1 AND shelter_id', [name_fund, shelter_id]
         );
 
         if (fundExists.rows.length > 0) {
@@ -96,8 +96,8 @@ const updateFund = async (req, res) => {
 
         if (name_fund) {
             const fundExistsName = await pool.query(
-                'SELECT * FROM "Fund" WHERE name_fund = $1 AND id_fund != $2',
-                [name_fund, id]
+                'SELECT * FROM "Fund" WHERE name_fund = $1 AND shelter_id = $2 AND id_fund != $3',
+                [name_fund, shelter_id, id]
             );
 
             if (fundExistsName.rows.length > 0) {

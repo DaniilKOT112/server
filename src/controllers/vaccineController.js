@@ -84,14 +84,17 @@ const updateVaccine = async (req, res) => {
         }
 
         if (vaccine_id && shelter_id) {
-            const vaccineExists = await pool.query('SELECT * FROM "ShelterVaccine" WHERE vaccine_id = $1 AND shelter_id = $2 AND id_shelter_vaccine != $3',
-                [vaccine_id, shelter_id, id]);
+            const vaccineExists = await pool.query(
+                'SELECT * FROM "ShelterVaccine" WHERE vaccine_id = $1 AND shelter_id = $2 AND id_shelter_vaccine != $3',
+                [vaccine_id, shelter_id, id]
+            );
             if (vaccineExists.rows.length > 0) {
                 return res.status(400).json({message: 'Такая вакцина уже существует!'});
             }
         }
 
-        const result = await pool.query('UPDATE "ShelterVaccine" SET vaccine_id = COALESCE($1, vaccine_id), shelter_id = COALESCE($2, shelter_id), ' +
+        const result = await pool.query(
+            'UPDATE "ShelterVaccine" SET vaccine_id = COALESCE($1, vaccine_id), shelter_id = COALESCE($2, shelter_id), ' +
             'date = COALESCE($3, date), quantity = COALESCE($4, quantity) WHERE id_shelter_vaccine = $5 RETURNING *',
             [vaccine_id, shelter_id, date, quantity, id]
         );
