@@ -14,7 +14,7 @@ const s3 = new S3Client({
         accessKeyId: process.env.YC_KEY_ID,
         secretAccessKey: process.env.YC_SECRET_KEY,
     },
-    forcePathStyle: true
+    // forcePathStyle: true
 })
 
 const uploadToS3 = async (file) => {
@@ -23,7 +23,7 @@ const uploadToS3 = async (file) => {
         Key: Date.now() + '_' + file.originalname,
         Body: file.buffer,
         ContentType: file.mimetype,
-        ACL: 'public-read'
+        // ACL: 'public-read'
     };
 
     try {

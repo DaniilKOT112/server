@@ -200,4 +200,81 @@ const userUpdate = async (req, res) => {
     }
 }
 
-module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters};
+const getPets = async (req, res) => {
+    const { text, shelter, category, sex, vaccination, sort } = req.query;
+
+    try {
+        let baseQuery = `
+            SELECT p.id_pets, p.nickname, p.age, st.id_status_pets, st.name_status as status, p.description, c.id_category, c.name_category as category,
+                   s.id_shelter, s.name_shelter as shelter, p.sex, sv.id_status, sv.name_status as status_vac,
+                   COALESCE(json_agg(pi.image_url ORDER BY pi.id_image) FILTER (WHERE pi.image_url IS NOT NULL),'[]') as images
+            FROM "Pets" p
+            LEFT JOIN "StatusPets" st ON p.status_id = st.id_status_pets 
+            LEFT JOIN "PetsCategory" c ON p.category_id = c.id_category
+            LEFT JOIN "Shelter" s ON p.shelter_id = s.id_shelter
+            LEFT JOIN "StatusVaccination" sv ON p.vaccination_id = sv.id_status
+            LEFT JOIN "PetsImages" pi ON p.id_pets = pi.pets_id`;
+
+        const params = [];
+        const condition = [];
+        let ind = 1;
+
+        if (text && text.trim() !== '') {
+            params.push( `%${text}%` );
+            condition.push(`p.nickname ILIKE $${ind}`);
+            ind++;
+        }
+
+        if (shelter) {
+            params.push(shelter);
+            condition.push(`p.shelter_id = $${ind}`);
+            ind++;
+        }
+
+        if (category) {
+            params.push(category);
+            condition.push(`p.category_id = $${ind}`);
+            ind++;
+        }
+
+        if (sex) {
+            params.push(sex);
+            condition.push(`p.sex = $${ind}`);
+            ind++;
+        }
+
+        if (vaccination) {
+            params.push(vaccination);
+            condition.push(`p.vaccination_id = $${ind}`);
+            ind++;
+        }
+
+        if (condition.length > 0) {
+            baseQuery += ` WHERE ` + condition.join(' AND ');
+        }
+
+        baseQuery += ` GROUP BY p.id_pets, st.id_status_pets, c.id_category, s.id_shelter, sv.id_status`;
+
+        if (sort === 'age_asc') {
+            baseQuery += ` ORDER BY p.age ASC`;
+        } else if (sort === 'age_desc') {
+            baseQuery += ` ORDER BY p.age DESC`;
+        } else if (sort === 'name_asc'){
+            baseQuery += ` ORDER BY p.nickname ASC`;
+        }
+
+
+        const result = await pool.query(baseQuery, params);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Данные отсутствуют!' });
+        }
+        return res.status(200).json({ message: 'Данные получены!', data: result.rows });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: 'Не удалось вернуть данные!' });
+
+    }
+}
+
+module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets};
