@@ -201,7 +201,7 @@ const userUpdate = async (req, res) => {
 }
 
 const getPets = async (req, res) => {
-    const { text, shelter, category, sex, vaccination, sort } = req.query;
+    const { text, shelter, category, sex, vaccination, sort, limit, offset} = req.query;
 
     try {
         let baseQuery = `
@@ -263,6 +263,17 @@ const getPets = async (req, res) => {
             baseQuery += ` ORDER BY p.nickname ASC`;
         }
 
+        if (limit) {
+            params.push(parseInt(limit));
+            baseQuery += ` LIMIT $${ind}`;
+            ind++;
+        }
+
+        if (offset) {
+            params.push(parseInt(offset));
+            baseQuery += ` OFFSET $${ind}`;
+            ind++;
+        }
 
         const result = await pool.query(baseQuery, params);
 
@@ -277,4 +288,32 @@ const getPets = async (req, res) => {
     }
 }
 
-module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets};
+const getPetsInfo = async (req, res) => {
+    const {id} = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT p.id_pets, p.nickname, p.age, st.id_status_pets, st.name_status as status, p.description, c.id_category, c.name_category as category,
+                   s.id_shelter, s.name_shelter as shelter, p.sex, sv.id_status, sv.name_status as status_vac, s.address, 
+                   COALESCE(json_agg(pi.image_url ORDER BY pi.id_image) FILTER (WHERE pi.image_url IS NOT NULL),'[]') as images
+            FROM "Pets" p
+            LEFT JOIN "StatusPets" st ON p.status_id = st.id_status_pets 
+            LEFT JOIN "PetsCategory" c ON p.category_id = c.id_category
+            LEFT JOIN "Shelter" s ON p.shelter_id = s.id_shelter
+            LEFT JOIN "StatusVaccination" sv ON p.vaccination_id = sv.id_status
+            LEFT JOIN "PetsImages" pi ON p.id_pets = pi.pets_id
+            WHERE p.id_pets = $1
+            GROUP BY p.id_pets, p.nickname, p.age, st.id_status_pets, st.name_status, p.description, c.id_category, c.name_category,
+            s.id_shelter, s.name_shelter, p.sex, sv.id_status, sv.name_status`, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Данные отсутствуют!' });
+        }
+        return res.status(200).json({ message: 'Данные получены!', data: result.rows });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: 'Не удалось вернуть данные!' });
+
+    }
+}
+
+module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets, getPetsInfo};
