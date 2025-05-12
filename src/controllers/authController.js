@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {pool} = require('../config/db');
+const nodemailer = require('nodemailer')
 
 const JWT_KEY = process.env.JWT_KEY;
 
@@ -101,4 +102,71 @@ const changePass = async (req, res) => {
     }
 }
 
-module.exports = {login, register, changePass};
+const resetMailLog = async (req, res) => {
+    const {mail} = req.body;
+    try {
+        const userResult = await pool.query('SELECT * FROM "User" WHERE mail=$1', [mail]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({message: 'Пользователь не найден!'});
+        }
+
+        const userId = userResult.rows[0].id_user;
+        const token = jwt.sign(
+            {id_user: userId},
+            JWT_KEY,
+            {expiresIn: '15m'}
+        );
+        const time = new Date(Date.now() + 1000 * 60 * 60);
+
+        await pool.query('INSERT INTO "ResetPass" (user_id, token, time) VALUES ($1, $2, $3)', [userId, token, time])
+
+        const tr = nodemailer.createTransport({
+            host: 'smtp.mail.ru',
+            port: 465,
+            secure: true,
+            auth: {
+                user: process.env.MAIL_USER,
+                pass: process.env.MAIL_PASS
+            }
+        })
+
+        const link = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
+
+        await tr.sendMail({
+            from: process.env.MAIL_USER,
+            to: mail,
+            subject: 'Восстановление пароля!',
+            text: `Перейдите по ссылке ${link}`,
+            html: `<a href="${link}">${link}</a>`
+        })
+
+        return res.status(200).json({message: 'Ссылка отправлена!'});
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json({message: 'Ошибка со стороны сервера'});
+    }
+}
+
+const resetPassLog = async (req, res) => {
+    const {token, newPassword} = req.body;
+
+    try {
+        const dec = jwt.verify(token, JWT_KEY);
+        const userId = dec.id_user;
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await pool.query('UPDATE "User" SET password = $1 WHERE id_user = $2',
+            [hashedPassword, userId]
+        );
+
+        return res.status(200).json({message: 'Пароль восстановлен успешно!'});
+    } catch(err) {
+        console.log(err);
+        return res.status(400).json({message: 'Ссылка не действительна'})
+    }
+}
+
+
+module.exports = {login, register, changePass, resetMailLog, resetPassLog};
