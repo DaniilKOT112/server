@@ -342,4 +342,24 @@ const addAdoption = async (req, res) => {
     }
 }
 
-module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets, getPetsInfo, getUsersList, addAdoption};
+const addContent = async (req, res) => {
+    console.log("Полученные данные:", req.body);
+    const {first_name, last_name, telephone, user_id, description, pets_id, date, creator} = req.body;
+
+    try {
+        const result = await pool.query(
+            'INSERT INTO "ContentRequest" (first_name, last_name, telephone, user_id, description, pets_id, date, creator, status_adoption_id) ' +
+            'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+            [
+                first_name, last_name, telephone, user_id, description, pets_id, date, creator, 1
+            ]
+        );
+        broadcast({event:'add-description', data:result.rows[0]});
+        return res.status(201).json({message: 'Заявка добавлена', user: result.rows[0]});
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({message: 'Ошибка времени загрузки!'});
+    }
+}
+
+module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets, getPetsInfo, getUsersList, addAdoption, addContent};
