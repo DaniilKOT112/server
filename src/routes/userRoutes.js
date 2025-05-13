@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets, getPetsInfo} = require('../controllers/userController');
+const {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets, getPetsInfo, getUsersList, addAdoption} = require('../controllers/userController');
 
 router.get('/get-users', getUsers);
 router.put('/users/:id', userId);
@@ -12,5 +12,7 @@ router.post('/add-user', addUser);
 router.get('/get-shelters', getShelters);
 router.get('/get-pets', getPets);
 router.get('/get-pets-info/:id', getPetsInfo);
+router.get('/get-users-list/:shelter', getUsersList);
+router.post('/add-adoption', addAdoption);
 
 module.exports = router;

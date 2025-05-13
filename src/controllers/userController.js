@@ -316,4 +316,30 @@ const getPetsInfo = async (req, res) => {
     }
 }
 
-module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets, getPetsInfo};
+const getUsersList = async (req, res) => {
+    const {shelter} = req.params;
+    const result = await pool.query('SELECT * FROM "User" WHERE shelter_id = $1 AND role_id = 5', [shelter]);
+    return res.status(200).json({message: 'Данные получены успешно!', data: result.rows});
+}
+
+const addAdoption = async (req, res) => {
+    console.log("Полученные данные:", req.body);
+    const {first_name, last_name, telephone, user_id, pets_id, date, creator} = req.body;
+
+    try {
+        const result = await pool.query(
+            'INSERT INTO "AdoptionApp" (first_name, last_name, telephone, user_id, pets_id, date, creator, status_adoption_id) ' +
+            'VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+            [
+                first_name, last_name, telephone, user_id, pets_id, date, creator, 1
+            ]
+        );
+        broadcast({event:'add-adoption', data:result.rows[0]});
+        return res.status(201).json({message: 'Заявка добавлена', user: result.rows[0]});
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({message: 'Ошибка времени загрузки!'});
+    }
+}
+
+module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets, getPetsInfo, getUsersList, addAdoption};
