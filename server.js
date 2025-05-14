@@ -17,6 +17,7 @@ const feedRoutes = require('./src/routes/feedRoutes');
 const foundHomeRoutes = require('./src/routes/foundHomeRoutes');
 const examinationRoutes = require('./src/routes/examRoutes');
 const vaccinationRoutes = require('./src/routes/vaccinationRoutes');
+const applicationRoutes = require('./src/routes/applicationsRouter')
 
 const app = express();
 app.use(express.json());
@@ -34,6 +35,7 @@ app.use('/feed', feedRoutes);
 app.use('/home', foundHomeRoutes);
 app.use('/exam', examinationRoutes);
 app.use('/vaccination', vaccinationRoutes);
+app.use('/application', applicationRoutes)
 
 const server = http.createServer(app)
 

@@ -354,7 +354,7 @@ const addContent = async (req, res) => {
                 first_name, last_name, telephone, user_id, description, pets_id, date, creator, 1
             ]
         );
-        broadcast({event:'add-description', data:result.rows[0]});
+        broadcast({event:'add-content', data:result.rows[0]});
         return res.status(201).json({message: 'Заявка добавлена', user: result.rows[0]});
     } catch (err) {
         console.error(err);
