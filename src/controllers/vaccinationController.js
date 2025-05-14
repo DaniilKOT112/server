@@ -58,6 +58,7 @@ const addVaccination = async (req, res) => {
     const {pets_id, shelter_id, vaccine_id, quantity, date } = req.body;
 
     try {
+        await pool.query('BEGIN');
         const expiration = await pool.query ('' +
             'SELECT sv.date ' +
             'FROM "ShelterVaccine" sv ' +
@@ -91,9 +92,16 @@ const addVaccination = async (req, res) => {
             'VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [pets_id, shelter_id, vaccine_id, quantity, date]
         );
+
+        await pool.query(
+            'UPDATE "Pets" SET vaccination_id = 1 WHERE id_pets = $1',
+            [pets_id]
+        );
+        await pool.query('COMMIT');
         broadcast({event:'vaccination-add', data: result.rows[0]});
         return res.status(201).json({message: 'Добавление выполнено!', vaccination: result.rows[0]});
     } catch (err) {
+        await pool.query('ROLLBACK');
         console.error(err);
         return res.status(500).json({message: 'Ошибка добавления!'});
     }
