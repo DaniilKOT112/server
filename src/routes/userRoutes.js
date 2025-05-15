@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters,
-    getPets, getPetsInfo, getUsersList, addAdoption, addContent} = require('../controllers/userController');
+    getPets, getPetsInfo, getUsersList, addAdoption, addContent, getNetworks, getShelterFromNetwork,
+    getAllShelterFromNetwork, getShelterInfo, getPetsContent} = require('../controllers/userController');
 
 router.get('/get-users', getUsers);
 router.put('/users/:id', userId);
@@ -16,5 +17,10 @@ router.get('/get-pets-info/:id', getPetsInfo);
 router.get('/get-users-list/:shelter', getUsersList);
 router.post('/add-adoption', addAdoption);
 router.post('/add-content', addContent);
+router.get('/get-networks', getNetworks);
+router.get('/get-shelter-from-network', getShelterFromNetwork);
+router.get('/get-all-shelter-from-network', getAllShelterFromNetwork);
+router.get('/get-shelter-info/:id', getShelterInfo);
+router.get('/get-pets-content', getPetsContent);
 
 module.exports = router;

@@ -362,4 +362,108 @@ const addContent = async (req, res) => {
     }
 }
 
-module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets, getPetsInfo, getUsersList, addAdoption, addContent};
+const getNetworks = async (req, res) => {
+    const {limit, offset} = req.query;
+    try {
+        const result = await pool.query('' +
+            'SELECT n.id_network, n.name_network, n.telephone, u.first_name, u.last_name, u.middle_name, u.mail, ' +
+            'COALESCE(json_agg(ni.image_url ORDER BY ni.id_image) FILTER (WHERE ni.image_url IS NOT NULL),\'[]\') as images ' +
+            'FROM "Network" n ' +
+            'LEFT JOIN "User" u ON n.creator = u.id_user ' +
+            'LEFT JOIN "NetworkImages" ni ON n.id_network = ni.network_id ' +
+            'GROUP BY n.id_network, u.first_name, u.last_name, u.middle_name, u.mail ' +
+            'ORDER BY n.name_network ASC ' +
+            'LIMIT $1 OFFSET $2', [limit, offset]);
+        return res.status(200).json({message: 'Данные успешно получены!', data: result.rows});
+    } catch(err) {
+        console.error(err);
+        return res.status(500).json({message: 'Ошибка времени загрузки!'});
+    }
+
+
+}
+
+const getShelterFromNetwork = async (req, res) => {
+    const {id_network, limit, offset} = req.query;
+    try {
+        const result = await pool.query('' +
+            'SELECT s.id_shelter, s.name_shelter, s.address, s.telephone, u.first_name, u.last_name, u.middle_name, u.mail, ' +
+            'COALESCE(json_agg(si.image_url ORDER BY si.id_image) FILTER (WHERE si.image_url IS NOT NULL),\'[]\') as images ' +
+            'FROM "Shelter" s ' +
+            'LEFT JOIN "User" u ON s.creator = u.id_user ' +
+            'LEFT JOIN "ShelterImages" si ON s.id_shelter = si.shelter_id ' +
+            'WHERE s.network_id = $1 ' +
+            'GROUP BY s.id_shelter, u.first_name, u.last_name, u.middle_name, u.mail ' +
+            'ORDER BY s.name_shelter ASC ' +
+            'LIMIT $2 OFFSET $3', [id_network, limit, offset]);
+        return res.status(200).json({message: 'Данные успешно получены!', data: result.rows});
+    } catch(err) {
+        console.error(err);
+        return res.status(500).json({message: 'Ошибка времени загрузки!'});
+    }
+
+}
+
+const getAllShelterFromNetwork = async (req, res) => {
+    const {limit, offset} = req.query;
+    try {
+        const result = await pool.query('' +
+            'SELECT s.id_shelter, s.name_shelter, s.address, s.telephone, u.first_name, u.last_name, u.middle_name, u.mail, ' +
+            'COALESCE(json_agg(si.image_url ORDER BY si.id_image) FILTER (WHERE si.image_url IS NOT NULL),\'[]\') as images ' +
+            'FROM "Shelter" s ' +
+            'LEFT JOIN "User" u ON s.creator = u.id_user ' +
+            'LEFT JOIN "ShelterImages" si ON s.id_shelter = si.shelter_id ' +
+            'GROUP BY s.id_shelter, u.first_name, u.last_name, u.middle_name, u.mail ' +
+            'ORDER BY s.name_shelter ASC ' +
+            'LIMIT $1 OFFSET $2', [limit, offset]);
+        return res.status(200).json({message: 'Данные успешно получены!', data: result.rows});
+    } catch(err) {
+        console.error(err);
+        return res.status(500).json({message: 'Ошибка времени загрузки!'});
+    }
+}
+
+const getShelterInfo = async (req, res) => {
+    const {id} = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT s.id_shelter, s.name_shelter, s.address, s.telephone, u.first_name, u.last_name, u.middle_name, u.mail, 
+        COALESCE(json_agg(si.image_url ORDER BY si.id_image) FILTER (WHERE si.image_url IS NOT NULL),\'[]\') as images
+        FROM "Shelter" s
+        LEFT JOIN "Network" n ON s.network_id = n.id_network
+        LEFT JOIN "User" u ON s.creator = u.id_user
+        LEFT JOIN "ShelterImages" si ON s.id_shelter = si.shelter_id
+        WHERE s.id_shelter = $1
+        GROUP BY s.id_shelter, u.first_name, u.last_name, u.middle_name, u.mail 
+        ORDER BY s.name_shelter ASC`, [id]);
+        return res.status(200).json({message: 'Данные успешно получены!', data: result.rows});
+    } catch(err) {
+        console.error(err);
+        return res.status(500).json({message: 'Ошибка времени загрузки!'});
+    }
+}
+
+const getPetsContent = async (req, res) => {
+    const {creator, limit, offset} = req.query;
+    try {
+        const result = await pool.query('' +
+            'SELECT cr.id_request, cr.date, p.id_pets, p.nickname, p.age, p.status_id, p.description, p.category_id, ' +
+            'p.shelter_id, p.sex, p.vaccination_id, ' +
+            'COALESCE(json_agg(pi.image_url ORDER BY pi.id_image) FILTER (WHERE pi.image_url IS NOT NULL),\'[]\') as images ' +
+            'FROM "ContentRequest" cr ' +
+            'LEFT JOIN "Pets" p ON cr.pets_id = p.id_pets ' +
+            'LEFT JOIN "PetsImages" pi ON p.id_pets = pi.pets_id ' +
+            'WHERE cr.creator = $1 AND cr.status_adoption_id = 2 ' +
+            'GROUP BY cr.id_request, p.id_pets ' +
+            'ORDER BY p.nickname ASC ' +
+            'LIMIT $2 OFFSET $3', [creator, limit, offset]);
+        return res.status(200).json({message: 'Данные успешно получены!', data: result.rows});
+    } catch(err) {
+        console.error(err);
+        return res.status(500).json({message: 'Ошибка времени загрузки!'});
+    }
+}
+
+module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets,
+    getPetsInfo, getUsersList, addAdoption, addContent, getNetworks, getShelterFromNetwork,
+    getAllShelterFromNetwork, getShelterInfo, getPetsContent};
