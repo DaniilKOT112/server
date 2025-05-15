@@ -36,7 +36,7 @@ const getContent = async (req, res) => {
 }
 
 const acceptContent = async (req, res) => {
-    const { creator, message, user_id, status, id_request } = req.body;
+    const { creator, message, user_id, status, id_request, id_pets } = req.body;
 
     try {
         await pool.query('BEGIN');
@@ -46,7 +46,8 @@ const acceptContent = async (req, res) => {
             [creator, message, user_id, status]
         );
 
-        await pool.query('UPDATE "ContentRequest" SET status_adoption_id = 2 WHERE id_request = $1', [id_request])
+        await pool.query('UPDATE "ContentRequest" SET status_adoption_id = 2 WHERE id_request = $1', [id_request]);
+        await pool.query('UPDATE "Pets" SET status_id = 2 WHERE id_pets = $1', [id_pets]);
         await pool.query('COMMIT');
 
         broadcast({event:'message-accept', data: result.rows[0]});
@@ -59,7 +60,7 @@ const acceptContent = async (req, res) => {
 }
 
 const cancelContent = async (req, res) => {
-    const { creator, message, user_id, status, id_request } = req.body;
+    const { creator, message, user_id, status, id_request, id_pets } = req.body;
 
     try {
         await pool.query('BEGIN');
@@ -69,7 +70,8 @@ const cancelContent = async (req, res) => {
             [creator, message, user_id, status]
         );
 
-        await pool.query('UPDATE "ContentRequest" SET status_adoption_id = 0 WHERE id_request = $1', [id_request])
+        await pool.query('UPDATE "ContentRequest" SET status_adoption_id = 0 WHERE id_request = $1', [id_request]);
+        await pool.query('UPDATE "Pets" SET status_id = 1 WHERE id_pets = $1', [id_pets]);
         await pool.query('COMMIT');
 
         broadcast({event:'message-cancel', data: result.rows[0]});
@@ -135,7 +137,7 @@ const getAdoption = async (req, res) => {
 }
 
 const acceptAdoption = async (req, res) => {
-    const { creator, message, user_id, status, id_app } = req.body;
+    const { creator, message, user_id, status, id_app, id_pets } = req.body;
 
     try {
         await pool.query('BEGIN');
@@ -145,7 +147,8 @@ const acceptAdoption = async (req, res) => {
             [creator, message, user_id, status]
         );
 
-        await pool.query('UPDATE "AdoptionApp" SET status_adoption_id = 2 WHERE id_app = $1', [id_app])
+        await pool.query('UPDATE "AdoptionApp" SET status_adoption_id = 2 WHERE id_app = $1', [id_app]);
+        await pool.query('UPDATE "Pets" SET status_id = 3 WHERE id_pets = $1', [id_pets]);
         await pool.query('COMMIT');
 
         broadcast({event:'message-accept-adoption', data: result.rows[0]});
@@ -158,7 +161,7 @@ const acceptAdoption = async (req, res) => {
 }
 
 const cancelAdoption = async (req, res) => {
-    const { creator, message, user_id, status, id_app } = req.body;
+    const { creator, message, user_id, status, id_app, id_pets } = req.body;
 
     try {
         await pool.query('BEGIN');
@@ -168,7 +171,8 @@ const cancelAdoption = async (req, res) => {
             [creator, message, user_id, status]
         );
 
-        await pool.query('UPDATE "AdoptionApp" SET status_adoption_id = 0 WHERE id_app = $1', [id_app])
+        await pool.query('UPDATE "AdoptionApp" SET status_adoption_id = 0 WHERE id_app = $1', [id_app]);
+        await pool.query('UPDATE "Pets" SET status_id = 1 WHERE id_pets = $1', [id_pets]);
         await pool.query('COMMIT');
 
         broadcast({event:'message-cancel-adoption', data: result.rows[0]});
