@@ -176,4 +176,21 @@ const feedDelete = async (req, res) => {
     }
 }
 
-module.exports = {getShelters, getFeed, addFeed: [upload.array('images'), addFeed], updateFeed: [upload.array('images'), updateFeed], feedDelete};
+const getFeedUser = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT f.id_feed, f.heading, f.text, f.author, s.id_shelter, s.name_shelter as shelter,
+                   COALESCE(json_agg(fi.image_url) FILTER (WHERE fi.image_url IS NOT NULL),'[]') as images
+            FROM "Feed" f
+            LEFT JOIN "Shelter" s ON f.shelter_id = s.id_shelter
+            LEFT JOIN "FeedImages" fi ON f.id_feed = fi.feed_id
+            GROUP BY f.id_feed, s.id_shelter
+            ORDER BY f.heading ASC`);
+        return res.status(200).json({ message: 'Данные получены!', data: result.rows });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: 'Не удалось вернуть данные!' });
+    }
+}
+
+module.exports = {getShelters, getFeed, addFeed: [upload.array('images'), addFeed], updateFeed: [upload.array('images'), updateFeed], feedDelete, getFeedUser};
