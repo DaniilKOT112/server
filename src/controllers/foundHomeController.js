@@ -185,6 +185,7 @@ const foundHomeDelete = async (req, res) => {
 }
 
 const getFoundHomeUser = async (req, res) => {
+    const { limit, offset } = req.query;
     try {
         const result = await pool.query(`
             SELECT f.id_found_home, f.heading, f.text, f.author, s.id_shelter, s.name_shelter as shelter, st.id_status, st.name_status as status,
@@ -195,7 +196,8 @@ const getFoundHomeUser = async (req, res) => {
             LEFT JOIN "FoundImages" fi ON f.id_found_home = fi.found_home_id
             WHERE id_status = 1 
             GROUP BY f.id_found_home, s.id_shelter, st.id_status
-            ORDER BY f.heading ASC`);
+            ORDER BY f.heading ASC
+            LIMIT $1 OFFSET $2`, [limit, offset]);
         return res.status(200).json({ message: 'Данные получены!', data: result.rows });
     } catch (err) {
         console.log(err);

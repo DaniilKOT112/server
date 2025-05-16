@@ -177,6 +177,7 @@ const feedDelete = async (req, res) => {
 }
 
 const getFeedUser = async (req, res) => {
+    const { limit, offset } = req.query;
     try {
         const result = await pool.query(`
             SELECT f.id_feed, f.heading, f.text, f.author, s.id_shelter, s.name_shelter as shelter,
@@ -185,7 +186,8 @@ const getFeedUser = async (req, res) => {
             LEFT JOIN "Shelter" s ON f.shelter_id = s.id_shelter
             LEFT JOIN "FeedImages" fi ON f.id_feed = fi.feed_id
             GROUP BY f.id_feed, s.id_shelter
-            ORDER BY f.heading ASC`);
+            ORDER BY f.heading ASC
+            LIMIT $1 OFFSET $2`, [limit, offset]);
         return res.status(200).json({ message: 'Данные получены!', data: result.rows });
     } catch (err) {
         console.log(err);
