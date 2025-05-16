@@ -194,4 +194,24 @@ const getFundUser = async (req, res) => {
     }
 }
 
-module.exports = {getFund, addFund: [upload.array('images'), addFund], updateFund: [upload.array('images'), updateFund], deleteFund, getShelters, getFundUser};
+const getFundInfo = async (req, res) => {
+    const { id } = req.params;
+    try {
+        let result = await pool.query(`
+            SELECT f.id_fund, f.name_fund, f.description, f.url, s.id_shelter, s.name_shelter as shelter,
+                   COALESCE(json_agg(fi.image_url) FILTER (WHERE fi.image_url IS NOT NULL),'[]') as images
+            FROM "Fund" f
+            LEFT JOIN "Shelter" s ON f.shelter_id = s.id_shelter
+            LEFT JOIN "FundImages" fi ON f.id_fund = fi.fund_id
+            WHERE f.id_fund = $1
+            GROUP BY f.id_fund, s.id_shelter
+            ORDER BY f.name_fund ASC`, [id]);
+
+        return res.status(200).json({ message: 'Данные получены!', data: result.rows });
+    } catch (err) {
+        console.log(err)
+        return res.status(500).json({ message: 'Не удалось вернуть данные!' });
+    }
+}
+
+module.exports = {getFund, addFund: [upload.array('images'), addFund], updateFund: [upload.array('images'), updateFund], deleteFund, getShelters, getFundUser, getFundInfo};
