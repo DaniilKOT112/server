@@ -184,4 +184,24 @@ const foundHomeDelete = async (req, res) => {
     }
 }
 
-module.exports = {getShelters, getStatus, getFoundHome, addFoundHome: [upload.array('images'), addFoundHome], updateFoundHome: [upload.array('images'), updateFoundHome], foundHomeDelete };
+const getFoundHomeUser = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT f.id_found_home, f.heading, f.text, f.author, s.id_shelter, s.name_shelter as shelter, st.id_status, st.name_status as status,
+                   COALESCE(json_agg(fi.image_url) FILTER (WHERE fi.image_url IS NOT NULL),'[]') as images
+            FROM "FoundHome" f
+            LEFT JOIN "StatusFoundHome" st ON f.status_id = st.id_status
+            LEFT JOIN "Shelter" s ON f.shelter_id = s.id_shelter
+            LEFT JOIN "FoundImages" fi ON f.id_found_home = fi.found_home_id
+            WHERE id_status = 1 
+            GROUP BY f.id_found_home, s.id_shelter, st.id_status
+            ORDER BY f.heading ASC`);
+        return res.status(200).json({ message: 'Данные получены!', data: result.rows });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ message: 'Не удалось вернуть данные!' });
+    }
+}
+
+module.exports = {getShelters, getStatus, getFoundHome, addFoundHome: [upload.array('images'), addFoundHome],
+    updateFoundHome: [upload.array('images'), updateFoundHome], foundHomeDelete, getFoundHomeUser };
