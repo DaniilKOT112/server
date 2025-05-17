@@ -487,6 +487,42 @@ const userAccount = async (req, res) => {
     }
 }
 
+const getNotifications = async (req, res) => {
+    const {creator} = req.query;
+    try {
+        const result = await pool.query(
+            'SELECT m.id_message, u.id_user, u.first_name as creator, m.message, us.id_user, us.first_name as user, m.date, m.status ' +
+            'FROM "Messages" m ' +
+            'LEFT JOIN "User" u ON m.creator = u.id_user ' +
+            'LEFT JOIN "User" us ON m.user_id = us.id_user ' +
+            'WHERE m.creator = $1 ' +
+            'ORDER BY m.date ASC ', [creator]);
+        return res.status(200).json({message: 'Данные успешно получены!', data: result.rows});
+    } catch(err) {
+        console.error(err);
+        return res.status(500).json({message: 'Ошибка времени загрузки!'});
+    }
+}
+
+const deleteNotifications = async (req, res) => {
+    const {id} = req.params;
+    try {
+        const notificationsExists = await pool.query(
+            'SELECT * FROM "Messages" WHERE id_message = $1', [id]
+        );
+
+        if (notificationsExists.rows.length === 0) {
+            return res.status(404).json({message: 'Такое сообщение не найдено!'});
+        }
+
+        await pool.query('DELETE FROM "Messages" WHERE id_message = $1', [id]);
+        return res.status(200).json({message: 'Удаление сообщения выполнено успешно!'});
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({message: 'Возникла ошибка при удалении сообщения!'});
+    }
+}
+
 module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets,
     getPetsInfo, getUsersList, addAdoption, addContent, getNetworks, getShelterFromNetwork,
-    getAllShelterFromNetwork, getShelterInfo, getPetsContent, userAccount};
+    getAllShelterFromNetwork, getShelterInfo, getPetsContent, userAccount, getNotifications, deleteNotifications};
