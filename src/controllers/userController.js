@@ -168,7 +168,7 @@ const userInfo = async (req, res) => {
             return res.status(404).json({message: 'Такой email не найден!'});
         }
 
-        const result = await pool.query('SELECT id_user, first_name, last_name, middle_name, series, number, telephone ' +
+        const result = await pool.query('SELECT id_user, first_name, last_name, login, middle_name, series, number, telephone ' +
             'FROM "User" WHERE mail = $1', [mail]);
         return res.status(200).json({message: 'Данные получены успешно!', data: result.rows[0]});
     } catch (err) {
@@ -464,6 +464,29 @@ const getPetsContent = async (req, res) => {
     }
 }
 
+const userAccount = async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({message: 'Токен не найден!'});
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_KEY);
+        const userMail = decoded.mail;
+
+        const {first_name, last_name, middle_name, telephone} = req.body;
+        const result = await pool.query('UPDATE "User" SET first_name = COALESCE($1, first_name), last_name = COALESCE($2, last_name), middle_name = COALESCE($3, middle_name), ' +
+            'telephone = COALESCE($4, telephone)' +
+            ' WHERE mail = $5 RETURNING *', [first_name, last_name, middle_name, telephone, userMail]);
+
+        return res.status(200).json({message: 'Данные обновлены успешно!', data: result.rows[0]});
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({message: 'Ошибка при обновлении данных!'});
+    }
+}
+
 module.exports = {getUsers, userId, userDelete, getRoles, userInfo, userUpdate, addUser, getShelters, getPets,
     getPetsInfo, getUsersList, addAdoption, addContent, getNetworks, getShelterFromNetwork,
-    getAllShelterFromNetwork, getShelterInfo, getPetsContent};
+    getAllShelterFromNetwork, getShelterInfo, getPetsContent, userAccount};
