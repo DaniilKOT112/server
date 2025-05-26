@@ -496,7 +496,7 @@ const getNotifications = async (req, res) => {
             'LEFT JOIN "User" u ON m.creator = u.id_user ' +
             'LEFT JOIN "User" us ON m.user_id = us.id_user ' +
             'WHERE m.creator = $1 ' +
-            'ORDER BY m.date ASC ', [creator]);
+            'ORDER BY m.date DESC ', [creator]);
         return res.status(200).json({message: 'Данные успешно получены!', data: result.rows});
     } catch(err) {
         console.error(err);
