@@ -179,7 +179,7 @@ const getFundUser = async (req, res) => {
     try {
         let result = await pool.query(`
             SELECT f.id_fund, f.name_fund, f.description, f.url, s.id_shelter, s.name_shelter as shelter,
-                   COALESCE(json_agg(fi.image_url) FILTER (WHERE fi.image_url IS NOT NULL),'[]') as images
+                   COALESCE(json_agg(fi.image_url ORDER BY fi.id_image) FILTER (WHERE fi.image_url IS NOT NULL),'[]') as images
             FROM "Fund" f
             LEFT JOIN "Shelter" s ON f.shelter_id = s.id_shelter
             LEFT JOIN "FundImages" fi ON f.id_fund = fi.fund_id
@@ -199,7 +199,7 @@ const getFundInfo = async (req, res) => {
     try {
         let result = await pool.query(`
             SELECT f.id_fund, f.name_fund, f.description, f.url, s.id_shelter, s.name_shelter as shelter,
-                   COALESCE(json_agg(fi.image_url) FILTER (WHERE fi.image_url IS NOT NULL),'[]') as images
+                   COALESCE(json_agg(fi.image_url ORDER BY fi.id_image) FILTER (WHERE fi.image_url IS NOT NULL),'[]') as images
             FROM "Fund" f
             LEFT JOIN "Shelter" s ON f.shelter_id = s.id_shelter
             LEFT JOIN "FundImages" fi ON f.id_fund = fi.fund_id
