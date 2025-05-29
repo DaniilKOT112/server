@@ -128,7 +128,9 @@ const resetMailLog = async (req, res) => {
             auth: {
                 user: process.env.MAIL_USER,
                 pass: process.env.MAIL_PASS
-            }
+            },
+            logger: true,
+            debug: true,
         })
 
         const link = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
