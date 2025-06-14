@@ -92,6 +92,7 @@ const adminsId = async (req, res) => {
 }
 
 const addAdmins = async (req, res) => {
+    console.log('Тело запроса:', req.body);
     const {mail, password, role_id, first_name, last_name, middle_name, series, number, telephone, shelter_id, creator, login} = req.body;
 
     try {
