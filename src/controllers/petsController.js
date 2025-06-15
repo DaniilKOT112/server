@@ -25,6 +25,10 @@ const getShelters = async (req, res) => {
 const getPets = async (req, res) => {
     const { text, shelter } = req.query;
 
+    if (!shelter) {
+        return res.status(400).json({ message: 'Не получен приют!' });
+    }
+
     try {
         let baseQuery = `
             SELECT p.id_pets, p.nickname, p.age, st.id_status_pets, st.name_status as status, p.description, c.id_category, c.name_category as category,
@@ -66,6 +70,11 @@ const getPets = async (req, res) => {
 const addPets = async (req, res) => {
     const {nickname, age, status_id, description, category_id, shelter_id, sex, vaccination_id} = req.body;
     let files = req.files;
+
+    if (!nickname || !age || !status_id || !description || !category_id || !shelter_id || !sex || !vaccination_id) {
+        return res.status(400).json({ message: 'Все поля обязательны!' });
+    }
+
     try {
         const petExists = await pool.query(
             'SELECT * FROM "Pets" WHERE nickname = $1 AND shelter_id = $2', [nickname, shelter_id]
@@ -104,6 +113,10 @@ const updatePets = async (req, res) => {
     const {id} = req.params;
     const {nickname, age, status_id, description, category_id, shelter_id, sex, vaccination_id, deletedImages} = req.body;
     let newFiles = req.files;
+
+    if (!nickname || !age || !status_id || !description || !category_id || !shelter_id || !sex || !vaccination_id) {
+        return res.status(400).json({ message: 'Все поля обязательны!' });
+    }
 
     try {
         const petExists = await pool.query(
@@ -163,6 +176,11 @@ const updatePets = async (req, res) => {
 
 const petDelete = async (req, res) => {
     const {id} = req.params;
+
+    if (!id) {
+        return res.status(400).json({ message: 'Не получен id!' });
+    }
+
     try {
         await pool.query('BEGIN');
         const petExists = await pool.query(
