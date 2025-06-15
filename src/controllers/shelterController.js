@@ -53,7 +53,7 @@ const getShelters = async (req, res) => {
 const addShelter = async (req, res) => {
     const {name_shelter, network_id, opf, ogrn, inn_kpp, address, telephone, creator, status } = req.body;
     let files = req.files;
-
+    const normalizedAddress = addressToOSM(address);
     try {
         const shelterExists = await pool.query(
             'SELECT * FROM "Shelter" WHERE name_shelter = $1', [name_shelter]
@@ -66,7 +66,7 @@ const addShelter = async (req, res) => {
         const shelterResult = await pool.query(
             'INSERT INTO "Shelter" (name_shelter, network_id, opf, ogrn, inn_kpp, address, telephone, creator, status_id)' +
             'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-            [name_shelter, network_id, opf, ogrn, inn_kpp, address, telephone, creator, status]
+            [name_shelter, network_id, opf, ogrn, inn_kpp, normalizedAddress, telephone, creator, status]
         );
 
         const imageUrls = await Promise.all(
@@ -92,7 +92,7 @@ const updateShelter = async (req, res) => {
     const {id} = req.params;
     const { name_shelter, network_id, opf, ogrn, inn_kpp, address, telephone, creator, status, deletedImages} = req.body;
     let newFiles = req.files;
-
+    const normalizedAddress = addressToOSM(address);
     try {
         const shelterExists = await pool.query(
             'SELECT * FROM "Shelter" WHERE id_shelter = $1', [id]
@@ -119,7 +119,7 @@ const updateShelter = async (req, res) => {
             'inn_kpp = COALESCE($5, inn_kpp), address = COALESCE($6, address),' +
             'telephone = COALESCE($7, telephone), creator = COALESCE($8, creator), ' +
             'status_id = COALESCE($9, status_id) WHERE id_shelter = $10 RETURNING *',
-            [name_shelter, network_id, opf, ogrn, inn_kpp, address, telephone, creator, status, id]
+            [name_shelter, network_id, opf, ogrn, inn_kpp, normalizedAddress, telephone, creator, status, id]
         );
 
         if (deletedImages && deletedImages.length > 0) {
@@ -183,6 +183,20 @@ const shelterDelete = async (req, res) => {
         console.error(err);
         return res.status(500).json({message: 'Возникла ошибка при удалении приюта!'});
     }
+}
+function addressToOSM(address) {
+    return address
+        // Удаляем "г." и "г " в начале или после запятой
+        .replace(/(^|,\s*)г\.?\s*/gi, '$1')
+        // Заменяем "ул." или "ул " на "улица "
+        .replace(/ул\.?\s*/gi, 'улица ')
+        // Заменяем "д." или "д " на "дом "
+        .replace(/д\.?\s*/gi, 'дом ')
+        // Удаляем лишние пробелы и запятые
+        .replace(/\s+,/g, ',')
+        .replace(/,+/g, ',')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
 }
 
 module.exports = {getNetwork, getShelters, addShelter: [upload.array('images'), addShelter], updateShelter:[upload.array('images'), updateShelter], shelterDelete, getStatus};
