@@ -197,4 +197,6 @@ const petDelete = async (req, res) => {
 }
 
 
-module.exports = {getStatus, getStatusVaccination, getCategory, getShelters, getPets, addPets: [upload.array('images'), addPets], updatePets: [upload.array('images'), updatePets], petDelete};
+module.exports = {getStatus, getStatusVaccination, getCategory, getShelters,
+    getPets, addPets: [upload.array('images'), addPets],
+    updatePets: [upload.array('images'), updatePets], petDelete};

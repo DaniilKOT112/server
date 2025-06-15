@@ -325,7 +325,7 @@ const getUsersList = async (req, res) => {
 const addAdoption = async (req, res) => {
     console.log("Полученные данные:", req.body);
     const {first_name, last_name, telephone, user_id, pets_id, date, creator} = req.body;
-
+    //TODO: date преобразовать к нормальному виду
     try {
         const result = await pool.query(
             'INSERT INTO "AdoptionApp" (first_name, last_name, telephone, user_id, pets_id, date, creator, status_adoption_id) ' +

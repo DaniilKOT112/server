@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const {getStatus, getStatusVaccination, getCategory, getShelters, getPets, addPets, updatePets, petDelete } = require('../controllers/petsController');
+const {getStatus, getStatusVaccination, getCategory, getShelters, getPets,
+    addPets, updatePets,
+    petDelete } = require('../controllers/petsController');
 
 router.get('/get-status', getStatus);
 router.get('/get-status-vaccination', getStatusVaccination);
