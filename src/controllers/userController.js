@@ -456,7 +456,7 @@ const getPetsContent = async (req, res) => {
             'FROM "ContentRequest" cr ' +
             'LEFT JOIN "Pets" p ON cr.pets_id = p.id_pets ' +
             'LEFT JOIN "PetsImages" pi ON p.id_pets = pi.pets_id ' +
-            'WHERE cr.creator = $1 AND cr.status_adoption_id = 2 ' +
+            'WHERE cr.creator = $1 AND cr.status_adoption_id = 2 AND p.status_id = 2 ' +
             'GROUP BY cr.id_request, p.id_pets ' +
             'ORDER BY p.nickname ASC ' +
             'LIMIT $2 OFFSET $3', [creator, limit, offset]);
