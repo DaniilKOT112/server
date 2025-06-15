@@ -44,13 +44,13 @@ const addExamination = async (req, res) => {
     const {description, treatment, pets_id, shelter_id, date, name } = req.body;
 
     try {
-        const examExists = await pool.query(
-            'SELECT * FROM "Examination" WHERE name = $1 AND shelter_id = $2', [name, shelter_id]
-        );
+        // const examExists = await pool.query(
+        //     'SELECT * FROM "Examination" WHERE name = $1 AND shelter_id = $2', [name, shelter_id]
+        // );
 
-        if (examExists.rows.length > 0) {
-            return res.status(401).json({message: 'Осмотр с таким наименованием уже существует!'});
-        }
+        // if (examExists.rows.length > 0) {
+        //     return res.status(401).json({message: 'Осмотр с таким наименованием уже существует!'});
+        // }
 
         const result = await pool.query(
             'INSERT INTO "Examination" (description, treatment, pets_id, shelter_id, date, name)' +

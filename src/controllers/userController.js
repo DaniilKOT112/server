@@ -152,7 +152,7 @@ const getRoles = async (req, res) => {
 }
 
 const getShelters = async (req, res) => {
-    const result = await pool.query('SELECT * FROM "Shelter"');
+    const result = await pool.query('SELECT * FROM "Shelter" WHERE status_id = 1');
     return res.status(200).json({message: 'Данные получены успешно!', data: result.rows});
 }
 
@@ -206,7 +206,7 @@ const getPets = async (req, res) => {
     try {
         let baseQuery = `
             SELECT p.id_pets, p.nickname, p.age, st.id_status_pets, st.name_status as status, p.description, c.id_category, c.name_category as category,
-                   s.id_shelter, s.name_shelter as shelter, p.sex, sv.id_status, sv.name_status as status_vac,
+                   s.id_shelter, s.name_shelter as shelter, s.status_id, p.sex, sv.id_status, sv.name_status as status_vac,
                    COALESCE(json_agg(pi.image_url ORDER BY pi.id_image) FILTER (WHERE pi.image_url IS NOT NULL),'[]') as images
             FROM "Pets" p
             LEFT JOIN "StatusPets" st ON p.status_id = st.id_status_pets 
@@ -250,7 +250,9 @@ const getPets = async (req, res) => {
         }
 
         if (condition.length > 0) {
-            baseQuery += ` WHERE ` + condition.join(' AND ');
+            baseQuery += ` WHERE ` + condition.join(' AND ') + ` AND s.status_id = 1`;
+        } else {
+            baseQuery += ` WHERE s.status_id = 1`
         }
 
         baseQuery += ` GROUP BY p.id_pets, st.id_status_pets, c.id_category, s.id_shelter, sv.id_status`;
@@ -387,12 +389,12 @@ const getShelterFromNetwork = async (req, res) => {
     const {id_network, limit, offset} = req.query;
     try {
         const result = await pool.query('' +
-            'SELECT s.id_shelter, s.name_shelter, s.address, s.telephone, u.first_name, u.last_name, u.middle_name, u.mail, ' +
+            'SELECT s.id_shelter, s.name_shelter, s.address, s.status_id, s.telephone, u.first_name, u.last_name, u.middle_name, u.mail, ' +
             'COALESCE(json_agg(si.image_url ORDER BY si.id_image) FILTER (WHERE si.image_url IS NOT NULL),\'[]\') as images ' +
             'FROM "Shelter" s ' +
             'LEFT JOIN "User" u ON s.creator = u.id_user ' +
             'LEFT JOIN "ShelterImages" si ON s.id_shelter = si.shelter_id ' +
-            'WHERE s.network_id = $1 ' +
+            'WHERE s.network_id = $1 AND s.status_id = 1 ' +
             'GROUP BY s.id_shelter, u.first_name, u.last_name, u.middle_name, u.mail ' +
             'ORDER BY s.name_shelter ASC ' +
             'LIMIT $2 OFFSET $3', [id_network, limit, offset]);
@@ -408,11 +410,12 @@ const getAllShelterFromNetwork = async (req, res) => {
     const {limit, offset} = req.query;
     try {
         const result = await pool.query('' +
-            'SELECT s.id_shelter, s.name_shelter, s.address, s.telephone, u.first_name, u.last_name, u.middle_name, u.mail, ' +
+            'SELECT s.id_shelter, s.name_shelter, s.status_id, s.address, s.telephone, u.first_name, u.last_name, u.middle_name, u.mail, ' +
             'COALESCE(json_agg(si.image_url ORDER BY si.id_image) FILTER (WHERE si.image_url IS NOT NULL),\'[]\') as images ' +
             'FROM "Shelter" s ' +
             'LEFT JOIN "User" u ON s.creator = u.id_user ' +
             'LEFT JOIN "ShelterImages" si ON s.id_shelter = si.shelter_id ' +
+            'WHERE s.status_id = 1 ' +
             'GROUP BY s.id_shelter, u.first_name, u.last_name, u.middle_name, u.mail ' +
             'ORDER BY s.name_shelter ASC ' +
             'LIMIT $1 OFFSET $2', [limit, offset]);
